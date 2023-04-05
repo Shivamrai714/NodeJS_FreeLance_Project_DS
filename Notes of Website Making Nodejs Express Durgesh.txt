@@ -1,5 +1,5 @@
 
-=> npm start 
+=> npm start  : To Upload a project to Github , if connection fila opne window authenticator and then reset github setting.
 
 
 -Open terminal and check node and npm are installed.
