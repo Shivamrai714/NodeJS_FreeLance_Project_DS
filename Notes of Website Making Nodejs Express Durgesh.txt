@@ -1,0 +1,488 @@
+
+=> npm start 
+
+
+-Open terminal and check node and npm are installed.
+-Initialize project.
+
+=> npm init
+=> npm install express   (web framework of Node)
+=> npm install mongoose   (For connecting with MongoDB )
+=> npm install body-parser  (For handling the post request with json data)
+=> npm install hbs              (Template enginne )
+=> npm install nodemon --save-dev    (For autorunning the code , when changes are detected )
+
+-Step up the nodemon in the scripts object  in package.json
+Now crate the app.js file and open terminal again and run the projct
+
+=> npm start 
+
+-Now setup the folder strucute  public folder ( images, js , css) 
+ src folder ( models , routes  )
+ views folder ( html files )
+
+-Setting up the server and the routes on this mechanism .
+
+Make the server in the app.js file using express modules.and make it listen on the port.
+
+We can make the routes using the app object.
+like
+ app.get("/about" ,( request, response ) => {
+ response.send("This is the line from the server")
+} )
+
+//But its preferred to declare the routes in the routes folder.
+
+-So make a new files in routes folder, first import the express and create the object of route using express object.
+-Now we can make the call to get , post etc method using the routes object and then export it
+module.exports=routes
+-And in main App.js file we can import them and use them From here . Open Browser and chcek it.
+const routes = require('./routes/main')
+
+app.use('',routes);
+
+________________________________________________
+Setting up the template engine
+
+- Now we will use the 'hbs' tempate engine  to send the files.
+-Do the configuration 
+app.set('view engine','hbs')
+app.set("views","views")  
+
+
+- Now html file can't be rendered easily by the hbs template engine. Hence changing the file type from the html to hbs
+ 
+Also the statement in routes is changes from    response.send("This is Response from Routes file .")
+
+to   response.render("index")
+ 
+_________________________________________________
+
+VIDEO : 3 
+-----
+Setting up Mongo DB connectivity , setting partials   , serving the static css, js files.
+
+
+-Static css , image , js file serving
+-Start the Application  : npm start . and hit the url on browser
+- We just need to configure the source path in the app.js file 
+    app.use("/static" , express.static("public") )     //Open in browser  localhost:5556/static/images/apple.jpg
+
+
+
+  <!-- Custonm CSS -->
+     <link rel="stylesheet"  href="/static/css/mystyle.css" >  
+  <img src="/static/images/apple.jpg" alt="Background image">
+
+----
+Setting up the mongo Db connectivity.
+
+-Already Download the MongoDb (Verrsion 5) , Download the Compass App of MongoDB and configure other necessary settigs (Refer Mongo DB in one video Durgesh)
+-Connect Comapss with local connetion : Make a new Database website_tut and a collection in it detail from the MongoDB compass App
+-Now do the configuration of MongoDB database using the client mongoose in app.js file.
+  
+-Following code works for me to make the database connectivity
+//Updated Database connectivity
+const url = 'mongodb://127.0.0.1:27017/website_tut'
+mongoose.connect(url ,  {useNewUrlParser: true})
+const db = mongoose.connection
+db.once('open', _ => {
+  console.log('Database connected:', url)
+})
+
+db.on('error', err => {
+  console.error('connection error:', err)
+})
+
+
+
+___________
+
+Setting up partials /Like template inheritance of other languages
+
+-We need to give the path of partial in the app.js file
+hbs.registerPartials("views/partials")    //To make partial work
+
+-now to use the partial in other template files ie .hbs file just use like this.
+ {{>navbar}}
+
+-Also resart the server if it does not work.
+
+
+_________________________________________________
+
+VIDEO : 4 Using Bootstap
+
+-Setting Nodemon to watch also the hbs file changes and then reload the server.
+So change scripts: {"start" }  like this:
+
+"start":"nodemon src/app.js   -e js,hbs"
+
+
+-Now making changes in Nabar of hbs fils are also reflected here. just Need to represh the page only . No need to restart the server.
+
+-Make the class of navbar as conatiner only remove fluid from it so it will keep the navbar at center. (Conatiner fluild consumes the entire width  of the screen )
+-Now also  keep the list item at the right end so make change to  ms-auto  - shift them in right
+_______________________
+
+-Now to make all the things Dynamic we keep them in the database .
+
+-Making the schema in the model folder detail.js to keep the things dynamic.
+Now export this module and import it App.js and save it after making connection with the database .
+-turn off autosave from the VS code, othewise each time the Detail.create method worrk the dynamic data will be inserted in the database
+-Also one time we keep the details of field in the database . And comment out the method Detail.create so same object is not saved again
+
+-Now  we are dynamically fetching the data from the database and showing it on the index page
+-Fetch data in the main.js  adn then send data to the index page.
+
+
+
+WE HAVE UNINSTALLED THE VERSION 6 of  MONGODB and installed the Version 5  As find and many other method are not working .
+With Durgesh we used 5 version of MongoDB .
+Now just fetch the data from the DB of  Detail schema and then just pass it as object in index page.
+______________________
+
+-Fetch the data and send it to index.hbs file and therre use it  , also given it to navbar in data variable .
+ 
+ const details = await Detail.findOne({"_id":"642a6c28535475d3e71955db"}) 
+  response.render("index" ,{details:details})  
+
+
+-Now we can check by printing in navbar partial file.
+ {{>navbar   data=details}}
+
+Now we can dynamically put all the things using data vairble  in navbar . {{data.brandName}}  etc
+
+Now we can render the same details object from the various routes. 
+
+
+Now we have made the fully dynamic navbar
+---------------------------------
+
+
+Video  5 .  Making the dynamic slider - Full supported from the Database MongoDb
+
+-Now we have dowloaded the some images in static / image folder and use them in slideer
+-Go to BootStrap , courserl /slider
+-Make a new partial slider.js file to keep the slide and import it whereever necessary
+
+Path to access the css file image . no need to use public folder as we have already defined the path starting /static in app.js file
+
+href="/static/css/mystyle.css"
+
+
+-Now to make the title , subtitle , images dynamic from the database.
+
+-Now make a model to store all these information. Like this. 
+
+const mongoose = require("mongoose")
+
+const Slider = mongoose.Schema(
+    {
+        title:String,
+        subTitle:String,
+        imageUrl:String,
+    }
+)
+
+module.exports=mongoose.model('slider',Slider)
+
+
+-Then make  ::: 
+The call to database in app.js file to save the data.Then Comment out that create method , otherwise duplicate data will be send to MongoDB
+Slider.create(
+//   [
+//     {
+//       title:'Learn Java ',
+//       subTitle:'Its is the most popular language.',
+//       imageUrl:'/static/images/s1.png'
+//     },
+//     {
+//       title:'Python Django ',
+//       subTitle:'Popular Framword ',
+//       imageUrl:'/static/images/s2.png'
+//     },
+//     {
+//       title:' What about Node js  ',
+//       subTitle:'Node is the environment to execute JS outside browser ',
+//       imageUrl:'/static/images/s3.png'
+//     },
+//   ]
+// );
+
+
+
+--Now we need to firrst fetch details in routes and then send them to html/hbs pages.
+   const slides = await Slider.find()
+   console.log(slides)
+--response.render("index" ,{details:details , slides:slides })   //sending the object in  hbs file to show to user things dynamically .
+--Just refresh our page to see the changes on the console.
+-Then in index page we can further send the data to the slider partial using below syntax.
+ {{>slider  slides=slides }}
+
+-Now we can access the dynamic text using the in Slider.hbs file. And loop though each entries in the database to display them.
+
+-Now to make one class as active from the database , and other images are norrmal.
+-Also made this class property in the Schema which contains the active status.
+
+Basically i was making mistake with the png and jpg type that why the imgages are not loading.
+
+-For coursel to work we need to have only active class on 1 image.
+
+// Either use the url of images in Database , or save them in static folder then serve the path
+Url of MST image :
+https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSj3pKfitig23a7DI694tbHqc1A5yDYP76MOd9xYKT6g75CAYCUMnWSGiVNmmwir8g5LuA&usqp=CAU
+
+Path for accessing image  : /static/images/MST.jpg  (But not worked for )
+
+
+-Pixaweb website is used to get images.
+
+
+Done with the Section of the Banner , Make sure to use only 1 active class to make the c
+-Also see while updating/cloning the object , just add carefully , i was adding sharda ma image not correctly .So it was not loading.
+
+-Random Images  : 
+
+Use this link to fetch random images from the website.
+https://source.unsplash.com/random/1920x1080/?nature
+__________________________________________________________________
+
+Video 6 : Services Section:
+
+-Making the Dynamic Services Section : (All Thing will be fetched from the databsase )
+
+-Making the Services Sections. Also give the id, so we can scroll it to see this.
+
+-When we use the row of bootstap it give the 12 grid, so here we are taking 3 colums of each width 4 grids.
+div.col-md-4
+-Also when we want to leave left and right grids we can give offset 
+div.col-md-4 offset-2       (ie 2 -left ,  2 -right   will be left off )And rest colums 2 colums will be created of 4 grids each
+
+__________________________________________________________________
+
+-- Now to Attaching the font icon to the website. (Make sure correct version icons are used , otherwise theirr code will not work)
+
+Google : Fontawsome cdn.js.com  (Open the website for cnd and copy link of 5.15.4 version and paste in index.js file.)  
+Google : (Open icons to be used ) 
+
+paste this link in index.hbs file
+ <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" integrity="sha512-1ycn6IcaQQ40/MKBW2W4Rhis/DbILU74C1vSrLJxCq57o941Ym01SwNsOMqvEBFlcgUa6xLiPY/NS5R+E6ztJQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+ 
+And use like this And many more .
+
+Now add icons like this.
+<div class="container text-center">
+  <i class ="fab fa-accusoft my-3  "></i>
+</div>
+
+-Attach the class service_icon and style images using the css file
+.service_icon
+{
+    font-size: 90px;
+    color: rgb(69, 70, 70);
+}
+
+
+
+____________________________
+
+Now make the Schema to dynamically load the Services from the Database and then just loop though the columsn
+
+-Now making a new file "service.js" in the mongoose folder.
+-
+const mongoose = require("mongoose")
+
+const Service = mongoose.Schema({
+    icon:String  ,
+    title:String ,
+    description:String,
+    linkText:String,
+    link:String,
+})
+
+module.exports= mongoose.model("services",Service)
+
+--Now we can use this model in  app.js to send the values 1 time to the database , then comment it out.So same object is not added again.
+--Import the Service model , and then just call the Service.create function to save the details.
+--Call the function after the db is connected.
+
+make sure to disconnect the program run and then write the full create method and then write the rerun the program and see the database . 
+And then comment out the create method , so the duplicate entries will not be created.
+
+-Refer code 
+
+
+
+// Service.create([
+
+// {
+//   icon:'fab fa-accusoft',
+//   title:'Contact For Delivery',
+//   description:'We provide the fast accurate and time bound delivery ',
+//   linkText:'Contact',
+//   link:'https://www.facebook.com/profile.php?id=100009510345970'
+
+// },
+// {
+//   icon:'far fa-yin-yang fa-spin',
+//   title:'Delivery Category',
+//   description:' Early all time bound delivery of selected products',
+//   linkText:'Delivery',
+//   link:'https://www.facebook.com/profile.php?id=100009510345970'
+
+// },
+
+// ]);
+
+
+Check out the icon of font awsome(Check for specific verion of which u have attached cdn)
+<i class="fas fa-wifi"></i>
+<i class="fas fa-volume-up"></i>
+<i class="fas fa-badge-dollar"></i>
+<i class="fas fa-webcam"></i>
+______________
+
+Now in service.hbs file we will loop through the records of database and show them .
+
+Open the main.js file : 
+Now come back to routes file and fetch the services and pass then in  the render function. 
+
+
+-In main.js file import the exported Model / Schema from the service.js file . 
+const Service = require("../models/service")   
+
+
+ response.render("index" ,{
+    details:details ,
+     slides:slides ,
+     services:services
+
+    }) ;
+-Then use it to fetch all the record of the services from the database and then send index.hbs file , where we will show them dynamically  {{ service.title  }}
+
+
+
+-Now loop thought the fetched records . 
+
+-Some icon will not work , so try others
+
+______________________________________________________________________________
+
+Video 7 : 
+
+Now making the Form :  Saving to Database
+Building  the Contact Form.
+
+-now we have very good website svg background, where we can download the cutomizable css background css code and just page in css file and use that class whereever necessary
+
+-Desinged a form ,make sure to give post method ,and action to the form
+
+{{!-- Contact Us Section  --}}
+
+<section id="contact_us_section" class="py-5 backgroundsvg2"> 
+
+<div class="container " style="color: white;">
+  <h3 class="text-center ">Contact Us</h3>
+  <div class="row">
+    <div class="col">
+
+{{!-- Bootstap form --}}
+<form  action="/process-contact-form" method="post">
+  <div class="mb-3">
+    <label  for="exampleInputEmail1"  class="form-label">Your email address</label>
+    <input name="email" placeholder="Enter here" type="text" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp">
+    <div id="emailHelp" class="form-text">We'll never share your email with anyone else.</div>
+  </div>
+
+  <div class="mb-3">
+    <label for="contactNumberField" class="form-label">Your contact number</label>
+    <input name="phone" type="number" placeholder="Enter here"  class="form-control" id="contactNumberField">
+  </div>
+   
+   <div class="mb-3">
+  <label for="contactNumberField" class="form-label">Enter Your Query in Brief </label>
+  <textarea  name="query" style="height: 250px;" class="form-control" placeholder="Leave a comment here" id="floatingTextarea"></textarea>
+
+</div>
+
+<div class="container text-center">
+  <button type="submit" class="btn btn-dark">Submit</button>
+</div>
+</form>
+
+
+
+    </div>
+  
+  </div>
+</div>
+
+</section>
+
+
+
+
+________________
+
+Now handle the form submission. in backend
+
+-Now go to Routes folder and define the end point to handle the form submission request.
+
+-- Now we need to use the body parser to convert the form data to save in json data in database.
+
+In app.js import bodyparser
+//Using it as middleware to convert form data to json and save  it to database
+const bodyParser= require('body-parser')  
+
+//To be used in form submission : Make sure parse is use befor the routes.
+app.use(bodyParser.urlencoded({extended:true}));         //Use .json  if sending the json data , not the url form data 
+
+-Now to save the data in the db create a Model using mongoose
+
+#Model 
+const mongoose=require("mongoose")
+
+
+const Contact = mongoose.Schema(
+    {
+        email:String,
+        phone:String,
+        query:String
+    }
+)
+
+module.exports=mongoose.model("queries",Contact)
+
+
+-------- End point in Routes folder main.js file
+
+routes.post("/process-contact-form", async (request,response)=>{
+
+
+ //Use try catch : using async await , synchrounous to handle data once its fetched
+
+ try {
+  const data = await contact.create(request.body)   //save to database
+  console.log(data)
+  response.redirect("/")
+
+ } catch (error) {
+  console.log(error)
+  response.redirect("/")
+
+}
+
+})
+
+
+
+
+_________________________________________
+
+
+Video  :8 
+Make the static section , we can make them dynamic as well like the prevous ones.
+
+
+
